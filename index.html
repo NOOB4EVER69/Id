@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Egyptian ID Information</title>
+    <title>National ID Information</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -16,6 +17,7 @@
             margin: 0;
             padding: 0 10px;
         }
+
         .container {
             text-align: center;
             background-color: #1e1e1e;
@@ -25,7 +27,10 @@
             max-width: 100%;
             width: 300px;
         }
-        input {
+
+        select,
+        input,
+        button {
             padding: 10px;
             font-size: 1em;
             width: 100%;
@@ -35,125 +40,101 @@
             border: 1px solid #444;
             border-radius: 4px;
         }
-        button {
-            padding: 10px;
-            font-size: 1em;
-            background-color: #4CAF50;
-            color: #fff;
-            border: none;
-            cursor: pointer;
-            border-radius: 4px;
-            width: 100%;
-            margin-top: 10px;
-        }
+
         button:hover {
             background-color: #45a049;
         }
+
         .info {
             margin-top: 20px;
             font-size: 1.1em;
             color: #dddddd;
             text-align: left;
         }
-        .toggle-btn {
-            background-color: #555;
-            color: #fff;
-            border: none;
-            cursor: pointer;
-            border-radius: 4px;
-            font-size: 0.9em;
-            padding: 5px 10px;
-            margin-top: 10px;
-        }
-        .toggle-btn:hover {
-            background-color: #666;
-        }
     </style>
 </head>
+
 <body>
     <div class="container">
-        <h2 id="title">Enter Egyptian National ID</h2>
-        <input type="text" id="idInput" maxlength="14" placeholder="14-digit ID number" autocomplete="off">
+        <h2>National ID Information</h2>
+        <select id="countrySelect">
+            <option value="egypt">Egypt</option>
+            <option value="china">China</option>
+
+
+        </select>
+        <input type="text" id="idInput" placeholder="Enter ID number" autocomplete="off">
         <button onclick="getIDInfo()">Get Info</button>
-        <button class="toggle-btn" onclick="toggleLanguage()">العربية / English</button>
         <div class="info" id="info"></div>
     </div>
 
     <script>
-        let isArabic = false;
+        function getIDInfo() {
+            const country = document.getElementById("countrySelect").value;
+            const id = document.getElementById("idInput").value.trim();
+            const infoDiv = document.getElementById("info");
 
-        const translations = {
-            en: {
-                title: "Enter Egyptian National ID",
-                placeholder: "14-digit ID number",
-                button: "Get Info",
-                dateOfBirth: "Date of Birth",
-                century: "Century",
-                governorate: "Governorate of Birth",
-                country: "Country of Birth",
-                gender: "Gender",
-                male: "Male",
-                female: "Female",
-                countryName: "Egypt",
-                error: "Please enter a valid 14-digit ID.",
-                invalidCentury: "Invalid century code in ID."
-            },
-            ar: {
-                title: "أدخل الرقم القومي المصري",
-                placeholder: "رقم مكون من 14 رقمًا",
-                button: "إظهار المعلومات",
-                dateOfBirth: "تاريخ الميلاد",
-                century: "القرن",
-                governorate: "محافظة الميلاد",
-                country: "بلد الميلاد",
-                gender: "الجنس",
-                male: "ذكر",
-                female: "أنثى",
-                countryName: "مصر",
-                error: "يرجى إدخال رقم قومي صالح مكون من 14 رقمًا.",
-                invalidCentury: "كود القرن غير صالح في الرقم القومي."
+            let info = "";
+            let city = "";
+
+            switch (country) {
+                case "egypt":
+                    if (/^\d{14}$/.test(id)) {
+                        const centuryCode = id.charAt(0);
+                        const year = id.slice(1, 3);
+                        const month = id.slice(3, 5);
+                        const day = id.slice(5, 7);
+                        const gender = parseInt(id.charAt(12)) % 2 === 0 ? "Female" : "Male";
+                        const cityCode = id.slice(7, 9); // Simplified for demonstration
+                        city = getCity("egypt", cityCode);
+
+                        let century;
+                        if (centuryCode === "2") century = "1900s";
+                        else if (centuryCode === "3") century = "2000s";
+                        else { info = "<p>Invalid ID</p>"; break; }
+
+                        const birthDate = `${day}-${month}-${(century === "1900s" ? "19" : "20") + year}`;
+                        info = `<p><strong>Date of Birth:</strong> ${birthDate}</p>
+                                <p><strong>Gender:</strong> ${gender}</p>
+                                <p><strong>City of Birth:</strong> ${city}</p>
+                                <p><strong>Country:</strong> Egypt</p>`;
+                    } else {
+                        info = "<p>Invalid Egyptian ID</p>";
+                    }
+                    break;
+
+                case "china":
+                    if (/^\d{18}$/.test(id)) {
+                        const year = id.slice(6, 10);
+                        const month = id.slice(10, 12);
+                        const day = id.slice(12, 14);
+                        const gender = parseInt(id.charAt(16)) % 2 === 0 ? "Female" : "Male";
+                        const cityCode = id.slice(0, 6); // Simplified for demonstration
+                        city = getCity("china", cityCode);
+
+                        info = `<p><strong>Date of Birth:</strong> ${day}-${month}-${year}</p>
+                                <p><strong>Gender:</strong> ${gender}</p>
+                                <p><strong>City of Birth:</strong> ${city}</p>
+                                <p><strong>Country:</strong> China</p>`;
+                    } else {
+                        info = "<p>Invalid Chinese ID</p>";
+                    }
+                    break;
+
+
+
+
+
+                default:
+                    info = "<p>Invalid Country Selection</p>";
             }
-        };
 
-        function toggleLanguage() {
-            isArabic = !isArabic;
-            const lang = isArabic ? "ar" : "en";
-            document.getElementById("title").textContent = translations[lang].title;
-            document.getElementById("idInput").placeholder = translations[lang].placeholder;
-            document.querySelector("button").textContent = translations[lang].button;
+            infoDiv.innerHTML = info;
         }
 
-        function getIDInfo() {
-            const id = document.getElementById("idInput").value;
-            const infoDiv = document.getElementById("info");
-            const lang = isArabic ? "ar" : "en";
-
-            // Validate the ID length and format (14 digits)
-            if (/^\d{14}$/.test(id)) {
-                const centuryCode = id.charAt(0);
-                const year = id.slice(1, 3);
-                const month = id.slice(3, 5);
-                const day = id.slice(5, 7);
-                const governorateCode = id.slice(7, 9);
-                const genderDigit = parseInt(id.charAt(12), 10);
-
-                // Determine the century based on the first digit
-                let century;
-                if (centuryCode === "2") {
-                    century = "1900s";
-                } else if (centuryCode === "3") {
-                    century = "2000s";
-                } else {
-                    infoDiv.innerHTML = `<p style='color: red;'>${translations[lang].invalidCentury}</p>`;
-                    return;
-                }
-
-                // Construct the full birth year
-                const fullYear = (century === "1900s" ? "19" : "20") + year;
-                const dateOfBirth = `${day}-${month}-${fullYear}`;
-
-                // Map of governorate codes in Egypt
-                const governorates = {
+        function getCity(country, code) {
+            const cities = {
+                egypt: {
                     "01": "Cairo", "02": "Alexandria", "03": "Port Said", "04": "Suez",
                     "11": "Damietta", "12": "Dakahlia", "13": "Sharqia", "14": "Qalyubia",
                     "15": "Kafr El Sheikh", "16": "Gharbia", "17": "Monufia", "18": "Beheira",
@@ -161,24 +142,442 @@
                     "24": "Minya", "25": "Asyut", "26": "Sohag", "27": "Qena", "28": "Aswan",
                     "29": "Luxor", "31": "Red Sea", "32": "New Valley", "33": "Matrouh",
                     "34": "North Sinai", "35": "South Sinai", "88": "Foreign"
-                };
+                },
+                china: {
 
-                const governorate = governorates[governorateCode] || "Unknown";
+                    "110000": "Beijing",
+                    "110101": "Beijing, Dongcheng District",
+                    "110102": "Beijing, Xicheng District",
+                    "110105": "Beijing, Chaoyang District",
+                    "110106": "Beijing, Fengtai District",
+                    "110107": "Beijing, Shijingshan District",
+                    "110108": "Beijing, Haidian District",
+                    "110109": "Beijing, Mentougou District",
+                    "110111": "Beijing, Fangshan District",
+                    "110112": "Beijing, Tongzhou District",
+                    "110113": "Beijing, Shunyi District",
+                    "110114": "Beijing, Daxing District",
+                    "110115": "Beijing, Huairou District",
+                    "110116": "Beijing, Pinggu District",
+                    "110117": "Beijing, Miyun District",
+                    "110118": "Beijing, Yanqing District",
 
-                // Determine gender based on the 13th digit
-                const gender = genderDigit % 2 === 0 ? translations[lang].female : translations[lang].male;
+                    "120000": "Tianjin",
+                    "120101": "Tianjin, Hebei District",
+                    "120102": "Tianjin, Nankai District",
+                    "120103": "Tianjin, Heping District",
+                    "120104": "Tianjin, Hexi District",
+                    "120105": "Tianjin, Nankai District",
+                    "120106": "Tianjin, Dongli District",
+                    "120107": "Tianjin, Jinnan District",
+                    "120108": "Tianjin, Binhai New Area",
+                    "120109": "Tianjin, Wuqing District",
+                    "120110": "Tianjin, Baodi District",
+                    "120111": "Tianjin, Ninghe District",
+                    "120112": "Tianjin, Jinghai District",
+                    "120113": "Tianjin, Dagang District",
 
-                infoDiv.innerHTML = `
-                    <p><strong>${translations[lang].dateOfBirth}:</strong> ${dateOfBirth}</p>
-                    <p><strong>${translations[lang].century}:</strong> ${century}</p>
-                    <p><strong>${translations[lang].governorate}:</strong> ${governorate}</p>
-                    <p><strong>${translations[lang].country}:</strong> ${translations[lang].countryName}</p>
-                    <p><strong>${translations[lang].gender}:</strong> ${gender}</p>
-                `;
-            } else {
-                infoDiv.innerHTML = `<p style='color: red;'>${translations[lang].error}</p>`;
-            }
+
+                    "150000": "Inner Mongolia",
+                    "150100": "Hohhot",
+                    "150102": "Hohhot, Saihan District",
+                    "150103": "Hohhot, Xincheng District",
+                    "150104": "Hohhot, Yuquan District",
+                    "150105": "Hohhot, Huimin District",
+                    "150200": "Baotou",
+                    "150202": "Baotou, Donghe District",
+                    "150203": "Baotou, Qingshan District",
+                    "150204": "Baotou, Jinchuan District",
+                    "150205": "Baotou, Baotou District",
+                    "150300": "Wuhai",
+                    "150302": "Wuhai, Haibowan District",
+                    "150303": "Wuhai, Wuda District",
+                    "150400": "Chifeng",
+                    "150402": "Chifeng, Hongshan District",
+                    "150403": "Chifeng, Chifeng District",
+                    "150500": "Hulunbuir",
+                    "150502": "Hulunbuir, Hailaer District",
+                    "150600": "Tongliao",
+                    "150602": "Tongliao, Tongliao District",
+                    "150700": "Ordos",
+                    "150702": "Ordos, Dongsheng District",
+                    "150800": "Bayannur",
+                    "150802": "Bayannur, Bayanzhuoer District",
+                    "150900": "Ulaanqab",
+                    "150902": "Ulaanqab, Ulaanqab District",
+                    "152200": "Xilingol",
+                    "152201": "Xilingol, Xilin Gol League",
+                    "152500": "Alxa",
+                    "152501": "Alxa, Alxa League",
+
+                    "140000": "Shanxi",
+                    "140100": "Taiyuan",
+                    "140102": "Taiyuan, Xiaodian District",
+                    "140105": "Taiyuan, Yingze District",
+                    "140106": "Taiyuan, Wanbolin District",
+                    "140107": "Taiyuan, Jiancaoping District",
+                    "140200": "Datong",
+                    "140202": "Datong, Datong District",
+                    "140203": "Datong, Yanggao County",
+                    "140300": "Yangquan",
+                    "140302": "Yangquan, Urban District",
+                    "140400": "Changzhi",
+                    "140402": "Changzhi, Changzhi District",
+                    "140500": "Jincheng",
+                    "140502": "Jincheng, Jincheng District",
+                    "140600": "Lüliang",
+                    "140602": "Lüliang, Lüliang District",
+                    "140700": "Shuozhou",
+                    "140702": "Shuozhou, Shuozhou District",
+                    "140800": "Xinzhou",
+                    "140802": "Xinzhou, Xinzhou District",
+                    "140900": "Shanxi",
+                    "140902": "Shanxi, Shanxi District",
+
+                    "130000": "Hebei",
+                    "130100": "Shijiazhuang",
+                    "130102": "Shijiazhuang, Chang'an District",
+                    "130104": "Shijiazhuang, Qiaodong District",
+                    "130105": "Shijiazhuang, Qiaoxi District",
+                    "130107": "Shijiazhuang, Xinhua District",
+                    "130200": "Tangshan",
+                    "130202": "Tangshan, Lunan District",
+                    "130203": "Tangshan, Caofeidian District",
+                    "130204": "Tangshan, Guye District",
+                    "130300": "Qinhuangdao",
+                    "130302": "Qinhuangdao, Haigang District",
+                    "130303": "Qinhuangdao, Shanhaiguan District",
+                    "130400": "Handan",
+                    "130402": "Handan, Hanshan District",
+                    "130500": "Xingtai",
+                    "130502": "Xingtai, Xingtai District",
+                    "130600": "Baoding",
+                    "130602": "Baoding, Baoding District",
+                    "130700": "Zhangjiakou",
+                    "130702": "Zhangjiakou, Zhangjiakou District",
+                    "130800": "Chengde",
+                    "130802": "Chengde, Chengde District",
+                    "130900": "Cangzhou",
+                    "130902": "Cangzhou, Cangzhou District",
+                    "131000": "Langfang",
+                    "131002": "Langfang, Langfang District",
+                    "131100": "Hubei",
+                    "131102": "Hubei, Hubei District",
+
+                    "620000": "Gansu",
+                    "620100": "Lanzhou",
+                    "620102": "Lanzhou, Chengguan District",
+                    "620200": "Tianshui",
+                    "620202": "Tianshui, Qinzhou District",
+                    "620300": "Wuwei",
+                    "620302": "Wuwei, Wuwei District",
+                    "620400": "Zhangye",
+                    "620402": "Zhangye, Ganzhou District",
+                    "620500": "Baiyin",
+                    "620502": "Baiyin, Baiyin District",
+                    "620600": "Jinchang",
+                    "620602": "Jinchang, Jinchang District",
+                    "620700": "Pingliang",
+                    "620702": "Pingliang, Pingliang District",
+                    "620800": "Qingyang",
+                    "620802": "Qingyang, Qingyang District",
+                    "620900": "Dingxi",
+                    "620902": "Dingxi, Dingxi District",
+                    "621000": "Longnan",
+                    "621002": "Longnan, Longnan District",
+                    "621100": "Gannan",
+                    "621102": "Gannan, Gannan District",
+
+                    "630000": "Qinghai",
+                    "630100": "Xining",
+                    "630102": "Xining, Chengdong District",
+                    "630200": "Haidong",
+                    "630202": "Haidong, Haidong District",
+                    "630300": "Huangnan",
+                    "630302": "Huangnan, Huangnan District",
+                    "630400": "Hainan",
+                    "630402": "Hainan, Hainan District",
+                    "630500": "Guoluo",
+                    "630502": "Guoluo, Guoluo District",
+                    "630600": "Yushu",
+                    "630602": "Yushu, Yushu District",
+                    "630700": "Haibei",
+                    "630702": "Haibei, Haibei District",
+
+                    "640000": "Ningxia",
+                    "640100": "Yinchuan",
+                    "640102": "Yinchuan, Jinfeng District",
+                    "640200": "Shizuishan",
+                    "640202": "Shizuishan, Dawukou District",
+                    "640300": "Wuzhong",
+                    "640302": "Wuzhong, Litong District",
+                    "640400": "Guyuan",
+                    "640402": "Guyuan, Guyuan District",
+                    "640500": "Zhongwei",
+                    "640502": "Zhongwei, Zhongwei District",
+
+                    "650000": "Xinjiang",
+                    "650100": "Urumqi",
+                    "650102": "Urumqi, Tianshan District",
+                    "650103": "Urumqi, Shuimogou District",
+                    "650104": "Urumqi, Saybagh District",
+                    "650105": "Urumqi, Toutunhe District",
+                    "650106": "Urumqi, Midong District",
+                    "650200": "Karamay",
+                    "650202": "Karamay, Karamay District",
+                    "650400": "Turpan",
+                    "650402": "Turpan, Turpan District",
+                    "650500": "Hami",
+                    "650502": "Hami, Hami District",
+                    "650600": "Changji",
+                    "650602": "Changji, Changji District",
+                    "650700": "Bortala",
+                    "650702": "Bortala, Bortala District",
+                    "650800": "Ili",
+                    "650802": "Ili, Yining District",
+                    "652100": "Tacheng",
+                    "652101": "Tacheng, Tacheng District",
+                    "652200": "Altay",
+                    "652201": "Altay, Altay District",
+                    "659000": "Xinjiang Production and Construction Corps",
+
+                    "500000": "Chongqing",
+                    "500100": "Chongqing, Yuzhong District",
+                    "500200": "Chongqing, Jiangbei District",
+                    "500300": "Chongqing, Shapingba District",
+                    "500400": "Chongqing, Jiulongpo District",
+                    "500500": "Chongqing, Nanan District",
+                    "500600": "Chongqing, Banan District",
+                    "500700": "Chongqing, Beibei District",
+                    "500800": "Chongqing, Wanzhou District",
+                    "500900": "Chongqing, Changshou District",
+
+                    "510000": "Sichuan",
+                    "510100": "Chengdu",
+                    "510102": "Chengdu, Jinjiang District",
+                    "510104": "Chengdu, Qingyang District",
+                    "510105": "Chengdu, Chenghua District",
+                    "510300": "Mianyang",
+                    "510302": "Mianyang, Santai County",
+                    "510400": "Luzhou",
+                    "510402": "Luzhou, Jiangyang District",
+                    "510500": "Deyang",
+                    "510502": "Deyang, Deyang District",
+                    "510600": "Nanchong",
+                    "510602": "Nanchong, Nanchong District",
+                    "510700": "Suining",
+                    "510702": "Suining, Suining District",
+                    "510800": "Meishan",
+                    "510802": "Meishan, Meishan District",
+                    "510900": "Yibin",
+                    "510902": "Yibin, Yibin District",
+                    "511000": "Guang'an",
+                    "511002": "Guang'an, Guang'an District",
+                    "511100": "Bazhong",
+                    "511102": "Bazhong, Bazhong District",
+                    "511300": "Ziyang",
+                    "511302": "Ziyang, Ziyang District",
+                    "511400": "Aba",
+                    "511402": "Aba, Aba District",
+                    "511500": "Ganzi",
+                    "511502": "Ganzi, Ganzi District",
+
+                    "520000": "Guizhou",
+                    "520100": "Guiyang",
+                    "520102": "Guiyang, Yunyan District",
+                    "520200": "Zunyi",
+                    "520202": "Zunyi, Huichuan District",
+                    "520300": "Liupanshui",
+                    "520302": "Liupanshui, Liupanshui District",
+                    "520400": "Anshun",
+                    "520402": "Anshun, Anshun District",
+                    "520500": "Bijie",
+                    "520502": "Bijie, Bijie District",
+                    "520600": "Qiandongnan",
+                    "520602": "Qiandongnan, Qiandongnan District",
+                    "520700": "Qianxinan",
+                    "520702": "Qianxinan, Qianxinan District",
+
+                    "530000": "Yunnan",
+                    "530100": "Kunming",
+                    "530102": "Kunming, Wuhua District",
+                    "530200": "Lijiang",
+                    "530202": "Lijiang, Gucheng District",
+                    "530300": "Dali",
+                    "530302": "Dali, Dali District",
+                    "530400": "Xishuangbanna",
+                    "530402": "Xishuangbanna, Jinghong District",
+                    "530500": "Baoshan",
+                    "530502": "Baoshan, Baoshan District",
+                    "530600": "Chuxiong",
+                    "530602": "Chuxiong, Chuxiong District",
+                    "530700": "Lincang",
+                    "530702": "Lincang, Lincang District",
+                    "530800": "Nujiang",
+                    "530802": "Nujiang, Lushui District",
+
+                    "540000": "Tibet",
+                    "540100": "Lhasa",
+                    "540102": "Lhasa, Chengguan District",
+                    "540200": "Shigatse",
+                    "540202": "Shigatse, Shigatse District",
+                    "540300": "Ngari",
+                    "540302": "Ngari, Ngari District",
+                    "540400": "Nyingchi",
+                    "540402": "Nyingchi, Nyingchi District",
+                    "540500": "Shannan",
+                    "540502": "Shannan, Shannan District",
+
+                    "320000": "Jiangsu",
+                    "320100": "Nanjing",
+                    "320102": "Nanjing, Xuanwu District",
+                    "320104": "Nanjing, Qinhuai District",
+                    "320105": "Nanjing, Jianye District",
+                    "320200": "Wuxi",
+                    "320202": "Wuxi, Chong'an District",
+                    "320300": "Xuzhou",
+                    "320302": "Xuzhou, Xuzhou District",
+                    "320400": "Changzhou",
+                    "320402": "Changzhou, Changzhou District",
+                    "320500": "Suzhou",
+                    "320502": "Suzhou, Gusu District",
+                    "320600": "Nantong",
+                    "320602": "Nantong, Nantong District",
+                    "320700": "Lianyungang",
+                    "320702": "Lianyungang, Lianyungang District",
+                    "320800": "Huaian",
+                    "320802": "Huaian, Huaian District",
+                    "320900": "Yancheng",
+                    "320902": "Yancheng, Yancheng District",
+                    "321000": "Zhangjiagang",
+                    "321002": "Zhangjiagang, Zhangjiagang District",
+
+                    "330000": "Zhejiang",
+                    "330100": "Hangzhou",
+                    "330102": "Hangzhou, Shangcheng District",
+                    "330104": "Hangzhou, Xihu District",
+                    "330200": "Ningbo",
+                    "330202": "Ningbo, Haishu District",
+                    "330300": "Wenzhou",
+                    "330302": "Wenzhou, Lucheng District",
+                    "330400": "Jiaxing",
+                    "330402": "Jiaxing, Jiaxing District",
+                    "330500": "Huzhou",
+                    "330502": "Huzhou, Huzhou District",
+                    "330600": "Shaoxing",
+                    "330602": "Shaoxing, Yuecheng District",
+                    "330700": "Zhoushan",
+                    "330702": "Zhoushan, Dinghai District",
+
+                    "340000": "Anhui",
+                    "340100": "Hefei",
+                    "340102": "Hefei, Yaohai District",
+                    "340103": "Hefei, Luyang District",
+                    "340200": "Wuhu",
+                    "340202": "Wuhu, Jiuzi District",
+                    "340300": "Bengbu",
+                    "340302": "Bengbu, Bengshan District",
+                    "340400": "Huainan",
+                    "340402": "Huainan, Huainan District",
+                    "340500": "Ma'anshan",
+                    "340502": "Ma'anshan, Ma'anshan District",
+                    "340600": "Huangshan",
+                    "340602": "Huangshan, Tunxi District",
+
+                    "350000": "Fujian",
+                    "350100": "Fuzhou",
+                    "350102": "Fuzhou, Gulou District",
+                    "350200": "Xiamen",
+                    "350202": "Xiamen, Siming District",
+                    "350300": "Quanzhou",
+                    "350302": "Quanzhou, Fengze District",
+
+                    "360000": "Jiangxi",
+                    "360100": "Nanchang",
+                    "360102": "Nanchang, Donghu District",
+                    "360200": "Jiujiang",
+                    "360202": "Jiujiang, Lushan District",
+
+                    "370000": "Shandong",
+                    "370100": "Jinan",
+                    "370102": "Jinan, Shizhong District",
+                    "370200": "Qingdao",
+                    "370202": "Qingdao, Shinan District",
+
+                    "430000": "Hunan",
+                    "430100": "Changsha",
+                    "430102": "Changsha, Furong District",
+                    "430200": "Zhuzhou",
+                    "430202": "Zhuzhou, Hetang District",
+
+                    "420000": "Hubei",
+                    "420100": "Wuhan",
+                    "420102": "Wuhan, Jiang'an District",
+                    "420200": "Huangshi",
+                    "420202": "Huangshi, Huangshigang District",
+
+                    "440000": "Guangdong",
+                    "440100": "Guangzhou",
+                    "440102": "Guangzhou, Yuexiu District",
+                    "440200": "Shenzhen",
+                    "440202": "Shenzhen, Luohu District",
+
+                    "450000": "Guangxi",
+                    "450100": "Nanning",
+                    "450102": "Nanning, Qingxiu District",
+
+                    "460000": "Hainan",
+                    "460100": "Haikou",
+                    "460102": "Haikou, Meilan District",
+
+                    "310000": "Shanghai",
+                    "310100": "Shanghai, Huangpu District",
+                    "310200": "Shanghai, Xuhui District",
+                    "310300": "Shanghai, Jing'an District",
+
+                    "230000": "Heilongjiang",
+                    "230100": "Harbin",
+                    "230102": "Harbin, Daoli District",
+                    "230200": "Qiqihar",
+                    "230202": "Qiqihar, Qiqihar District",
+                    "230300": "Jiamusi",
+                    "230302": "Jiamusi, Jiamusi District",
+                    "230400": "Hegang",
+                    "230402": "Hegang, Hegang District",
+                    "230500": "Shuangyashan",
+                    "230502": "Shuangyashan, Shuangyashan District",
+                    "230600": "Daqing",
+                    "230602": "Daqing, Daqing District",
+
+                    "220000": "Jilin",
+                    "220100": "Changchun",
+                    "220102": "Changchun, Chaoyang District",
+                    "220200": "Jilin",
+                    "220202": "Jilin, Chuanying District",
+
+                    "210000": "Liaoning",
+                    "210100": "Shenyang",
+                    "210102": "Shenyang, Shenhe District",
+                    "210200": "Dalian",
+                    "210202": "Dalian, Zhongshan District",
+                    "210300": "Anshan",
+                    "210302": "Anshan, Tiedong District",
+
+
+
+                    "710000": "Taiwan",
+                    "810000": "Hong Kong",
+                    "820000": "Macau",
+                    "900000": "Military"
+
+
+                },
+
+            };
+
+            return cities[country][code] || "Unknown City";
         }
     </script>
 </body>
+
 </html>
